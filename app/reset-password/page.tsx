@@ -1,5 +1,9 @@
 import { ResetPasswordForm } from "./ResetPasswordForm";
 
+// Ensure this page is rendered dynamically so searchParams (token, email)
+// are available per-request, not at build time.
+export const dynamic = "force-dynamic";
+
 type PageProps = {
   searchParams: {
     token?: string;
