@@ -222,24 +222,47 @@ function PaymentPageContent() {
           </div>
 
           {/* Coupon Code Section */}
-          {!user?.paymentStatus && (
-            <div className="space-y-3 border-t border-zinc-200 pt-4 dark:border-zinc-800">
-              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">
-                Have a coupon code?
-              </label>
+          {(!user || !user.paymentStatus) && (
+            <div className="space-y-3 border-t border-zinc-200 pt-6 dark:border-zinc-800">
+              <div className="flex items-center gap-2">
+                <svg
+                  className="h-5 w-5 text-zinc-600 dark:text-zinc-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+                <label className="block text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+                  Coupon Code
+                </label>
+              </div>
+              <p className="text-xs text-zinc-600 dark:text-zinc-400">
+                Enter a valid coupon code to get a discount on your purchase
+              </p>
               <div className="flex gap-2">
                 <input
                   type="text"
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
-                  placeholder="Enter coupon code"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && couponCode.trim() && !appliedCoupon) {
+                      handleApplyCoupon();
+                    }
+                  }}
+                  placeholder="Enter coupon code (e.g., UBER, BIKEA12)"
                   disabled={!!appliedCoupon || validatingCoupon}
-                  className="flex-1 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 disabled:bg-zinc-100 disabled:text-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:disabled:bg-zinc-800"
+                  className="flex-1 rounded-lg border-2 border-zinc-300 bg-white px-4 py-3 text-sm font-medium text-zinc-900 shadow-sm transition-all focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-500 disabled:bg-zinc-100 disabled:text-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:disabled:bg-zinc-800"
                 />
                 {appliedCoupon ? (
                   <button
                     onClick={handleRemoveCoupon}
-                    className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
+                    className="rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
                   >
                     Remove
                   </button>
@@ -247,21 +270,35 @@ function PaymentPageContent() {
                   <button
                     onClick={handleApplyCoupon}
                     disabled={validatingCoupon || !couponCode.trim()}
-                    className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-100 dark:text-black dark:hover:bg-zinc-200"
+                    className="rounded-lg bg-zinc-900 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-zinc-500 focus:ring-offset-2 dark:bg-zinc-100 dark:text-black dark:hover:bg-zinc-200"
                   >
-                    {validatingCoupon ? "..." : "Apply"}
+                    {validatingCoupon ? (
+                      <span className="flex items-center gap-2">
+                        <svg className="h-4 w-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Validating...
+                      </span>
+                    ) : (
+                      "Apply"
+                    )}
                   </button>
                 )}
               </div>
               {couponError && (
-                <p className="text-sm text-red-600 dark:text-red-400" role="alert">
-                  {couponError}
-                </p>
+                <div className="rounded-lg bg-red-50 p-3 dark:bg-red-900/20">
+                  <p className="text-sm font-medium text-red-700 dark:text-red-400" role="alert">
+                    {couponError}
+                  </p>
+                </div>
               )}
               {appliedCoupon && (
-                <p className="text-sm text-emerald-600 dark:text-emerald-400">
-                  ✓ Coupon applied! You save {appliedCoupon.discount}%
-                </p>
+                <div className="rounded-lg bg-emerald-50 p-3 dark:bg-emerald-900/20">
+                  <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400">
+                    ✓ Coupon "{appliedCoupon.code}" applied! You save {appliedCoupon.discount}% (Save £{discountAmount.toFixed(2)})
+                  </p>
+                </div>
               )}
             </div>
           )}
