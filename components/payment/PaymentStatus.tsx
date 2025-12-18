@@ -20,22 +20,37 @@ export function PaymentStatus({ userId, onStatusChange }: PaymentStatusProps) {
       return;
     }
 
+    let isMounted = true;
+
     const fetchStatus = async () => {
       try {
         setLoading(true);
         setError(null);
         const response = await getPaymentStatus(userId);
-        setUser(response.user);
-        onStatusChange?.(response.user);
+        
+        // Only update state if component is still mounted
+        if (isMounted) {
+          setUser(response.user);
+          onStatusChange?.(response.user);
+        }
       } catch (err: any) {
-        setError(err.message || "Failed to load payment status");
+        if (isMounted) {
+          setError(err.message || "Failed to load payment status");
+        }
       } finally {
-        setLoading(false);
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     };
 
     fetchStatus();
-  }, [userId, onStatusChange]);
+
+    // Cleanup function to prevent state updates if component unmounts
+    return () => {
+      isMounted = false;
+    };
+  }, [userId]); // Removed onStatusChange from dependencies to prevent infinite loop
 
   if (loading) {
     return (

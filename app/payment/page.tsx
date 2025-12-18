@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { CheckoutButton } from "@/components/payment/CheckoutButton";
 import { PaymentStatus } from "@/components/payment/PaymentStatus";
 import { getPaymentStatus } from "@/lib/api/payment";
@@ -10,21 +11,22 @@ import type { User } from "@/types/user";
 const DEFAULT_AMOUNT = 29.99;
 const DEFAULT_CURRENCY = "usd";
 
-export default function PaymentPage() {
+function PaymentPageContent() {
+  const searchParams = useSearchParams();
   const [userId, setUserId] = useState<string>("");
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // In a real app, you'd get userId from auth context/session
-  // For now, we'll use a simple input or localStorage
+  // Get userId from URL params
   useEffect(() => {
-    // Try to get userId from localStorage (set by your auth system)
-    const storedUserId = localStorage.getItem("userId");
-    if (storedUserId) {
-      setUserId(storedUserId);
+    const userIdParam = searchParams.get("userId") || searchParams.get("id");
+    if (userIdParam) {
+      setUserId(userIdParam);
+    } else {
+      setError("User ID is required. Please provide userId in the URL parameters.");
     }
-  }, []);
+  }, [searchParams]);
 
   const handleStatusChange = (updatedUser: User) => {
     setUser(updatedUser);
@@ -54,32 +56,14 @@ export default function PaymentPage() {
           </p>
         </div>
 
-        {/* User ID Input (for demo - remove in production) */}
-        {!userId && (
-          <div className="rounded-xl bg-white p-6 shadow-md dark:bg-zinc-900">
-            <label
-              htmlFor="userId"
-              className="mb-2 block text-sm font-medium text-zinc-700 dark:text-zinc-200"
-            >
-              User ID
-            </label>
-            <input
-              id="userId"
-              type="text"
-              value={userId}
-              onChange={(e) => {
-                const value = e.target.value;
-                setUserId(value);
-                if (value) {
-                  localStorage.setItem("userId", value);
-                }
-              }}
-              placeholder="Enter your user ID"
-              className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50"
-            />
-            <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
-              Note: In production, this should come from your authentication
-              system
+        {/* Error message if userId is missing */}
+        {error && !userId && (
+          <div className="rounded-xl bg-red-50 p-6 shadow-md dark:bg-red-900/20">
+            <p className="text-sm font-medium text-red-700 dark:text-red-400">
+              {error}
+            </p>
+            <p className="mt-2 text-xs text-red-600 dark:text-red-500">
+              Please access this page with a valid userId parameter: /payment?userId=YOUR_USER_ID
             </p>
           </div>
         )}
@@ -192,4 +176,17 @@ export default function PaymentPage() {
   );
 }
 
+export default function PaymentPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4 font-sans dark:bg-black">
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-zinc-300 border-t-zinc-600 dark:border-zinc-700 dark:border-t-zinc-300"></div>
+        </div>
+      }
+    >
+      <PaymentPageContent />
+    </Suspense>
+  );
+}
 

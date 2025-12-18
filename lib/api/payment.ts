@@ -29,9 +29,8 @@ export async function createCheckoutSession(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(
-      error.message || "Failed to create checkout session. Please try again."
-    );
+    const errorMessage = error.error?.message || error.message || "Failed to create checkout session. Please try again.";
+    throw new Error(errorMessage);
   }
 
   return response.json();
@@ -52,9 +51,8 @@ export async function getPaymentStatus(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(
-      error.message || "Failed to get payment status. Please try again."
-    );
+    const errorMessage = error.error?.message || error.message || "Failed to get payment status. Please try again.";
+    throw new Error(errorMessage);
   }
 
   return response.json();
@@ -78,9 +76,8 @@ export async function verifySession(
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
-    throw new Error(
-      error.message || "Failed to verify session. Please try again."
-    );
+    const errorMessage = error.error?.message || error.message || "Failed to verify session. Please try again.";
+    throw new Error(errorMessage);
   }
 
   return response.json();
