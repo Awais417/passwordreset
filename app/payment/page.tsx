@@ -4,7 +4,7 @@ import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { CheckoutButton } from "@/components/payment/CheckoutButton";
 import { PaymentStatus } from "@/components/payment/PaymentStatus";
-import { getPaymentStatus } from "@/lib/api/payment";
+import { getPaymentStatus, validateCoupon } from "@/lib/api/payment";
 import type { User } from "@/types/user";
 
 // Default pricing - you can make this configurable
@@ -17,6 +17,10 @@ function PaymentPageContent() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [couponCode, setCouponCode] = useState<string>("");
+  const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null);
+  const [couponError, setCouponError] = useState<string | null>(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   // Get userId from URL params
   useEffect(() => {
@@ -42,6 +46,54 @@ function PaymentPageContent() {
       }, 2000);
     }
   };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      setCouponError("Please enter a coupon code");
+      return;
+    }
+
+    setValidatingCoupon(true);
+    setCouponError(null);
+
+    try {
+      const response = await validateCoupon({ code: couponCode.trim() });
+      
+      if (response.success && response.coupon) {
+        setAppliedCoupon({
+          code: response.coupon.code,
+          discount: response.coupon.discount,
+        });
+        setCouponError(null);
+      } else {
+        setAppliedCoupon(null);
+        setCouponError(response.error?.message || response.message || "Invalid coupon code");
+      }
+    } catch (err: any) {
+      setAppliedCoupon(null);
+      setCouponError(err.message || "Failed to validate coupon code");
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCouponCode("");
+    setAppliedCoupon(null);
+    setCouponError(null);
+  };
+
+  // Calculate final amount with discount
+  const calculateFinalAmount = () => {
+    if (appliedCoupon) {
+      const discountAmount = (DEFAULT_AMOUNT * appliedCoupon.discount) / 100;
+      return DEFAULT_AMOUNT - discountAmount;
+    }
+    return DEFAULT_AMOUNT;
+  };
+
+  const finalAmount = calculateFinalAmount();
+  const discountAmount = appliedCoupon ? DEFAULT_AMOUNT - finalAmount : 0;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-zinc-50 px-4 py-12 font-sans dark:bg-black">
@@ -81,13 +133,35 @@ function PaymentPageContent() {
         {/* Payment Card */}
         <div className="rounded-xl bg-white p-8 shadow-md dark:bg-zinc-900">
           <div className="mb-6 space-y-4">
-            <div className="flex items-center justify-between border-b border-zinc-200 pb-4 dark:border-zinc-800">
-              <span className="text-zinc-600 dark:text-zinc-400">
-                Premium Plan
-              </span>
-              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-                £{DEFAULT_AMOUNT}
-              </span>
+            <div className="space-y-2 border-b border-zinc-200 pb-4 dark:border-zinc-800">
+              <div className="flex items-center justify-between">
+                <span className="text-zinc-600 dark:text-zinc-400">
+                  Premium Plan
+                </span>
+                <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+                  £{DEFAULT_AMOUNT}
+                </span>
+              </div>
+              {appliedCoupon && (
+                <>
+                  <div className="flex items-center justify-between text-sm">
+                    <span className="text-emerald-600 dark:text-emerald-400">
+                      Discount ({appliedCoupon.code}): -{appliedCoupon.discount}%
+                    </span>
+                    <span className="font-medium text-emerald-600 dark:text-emerald-400">
+                      -£{discountAmount.toFixed(2)}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-zinc-200 pt-2 dark:border-zinc-700">
+                    <span className="font-semibold text-zinc-900 dark:text-zinc-50">
+                      Total
+                    </span>
+                    <span className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
+                      £{finalAmount.toFixed(2)}
+                    </span>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="space-y-3">
@@ -147,6 +221,51 @@ function PaymentPageContent() {
             </div>
           </div>
 
+          {/* Coupon Code Section */}
+          {!user?.paymentStatus && (
+            <div className="space-y-3 border-t border-zinc-200 pt-4 dark:border-zinc-800">
+              <label className="block text-sm font-medium text-zinc-700 dark:text-zinc-200">
+                Have a coupon code?
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={couponCode}
+                  onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                  placeholder="Enter coupon code"
+                  disabled={!!appliedCoupon || validatingCoupon}
+                  className="flex-1 rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 shadow-sm focus:border-zinc-500 focus:outline-none focus:ring-1 focus:ring-zinc-500 disabled:bg-zinc-100 disabled:text-zinc-500 dark:border-zinc-700 dark:bg-zinc-950 dark:text-zinc-50 dark:disabled:bg-zinc-800"
+                />
+                {appliedCoupon ? (
+                  <button
+                    onClick={handleRemoveCoupon}
+                    className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
+                  >
+                    Remove
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleApplyCoupon}
+                    disabled={validatingCoupon || !couponCode.trim()}
+                    className="rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50 dark:bg-zinc-100 dark:text-black dark:hover:bg-zinc-200"
+                  >
+                    {validatingCoupon ? "..." : "Apply"}
+                  </button>
+                )}
+              </div>
+              {couponError && (
+                <p className="text-sm text-red-600 dark:text-red-400" role="alert">
+                  {couponError}
+                </p>
+              )}
+              {appliedCoupon && (
+                <p className="text-sm text-emerald-600 dark:text-emerald-400">
+                  ✓ Coupon applied! You save {appliedCoupon.discount}%
+                </p>
+              )}
+            </div>
+          )}
+
           {user?.paymentStatus ? (
             <div className="rounded-lg bg-emerald-50 p-4 text-center dark:bg-emerald-900/20">
               <p className="text-sm font-medium text-emerald-700 dark:text-emerald-400">
@@ -156,8 +275,9 @@ function PaymentPageContent() {
           ) : (
             <CheckoutButton
               userId={userId}
-              amount={DEFAULT_AMOUNT}
+              amount={finalAmount}
               currency={DEFAULT_CURRENCY}
+              couponCode={appliedCoupon?.code}
               onSuccess={handleCheckoutSuccess}
               disabled={!userId}
             />

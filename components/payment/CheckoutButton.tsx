@@ -7,6 +7,7 @@ interface CheckoutButtonProps {
   userId: string;
   amount: number;
   currency?: string;
+  couponCode?: string;
   onSuccess?: () => void;
   className?: string;
   disabled?: boolean;
@@ -16,6 +17,7 @@ export function CheckoutButton({
   userId,
   amount,
   currency = "usd",
+  couponCode,
   onSuccess,
   className = "",
   disabled = false,
@@ -34,6 +36,7 @@ export function CheckoutButton({
         userId,
         amount,
         currency,
+        couponCode,
       });
 
       // Redirect to Stripe checkout
@@ -76,7 +79,9 @@ export function CheckoutButton({
                 d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
               />
             </svg>
-            <span>Pay {currency === "gbp" ? "£" : "$"}{amount.toFixed(2)}</span>
+            <span>
+              Pay {currency === "gbp" ? "£" : "$"}{amount.toFixed(2)}
+            </span>
           </>
         )}
       </button>

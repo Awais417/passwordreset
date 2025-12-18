@@ -27,6 +27,31 @@ export interface CreateCheckoutSessionRequest {
   userId: string;
   amount: number;
   currency?: string;
+  couponCode?: string;
+}
+
+/**
+ * Validate coupon request
+ */
+export interface ValidateCouponRequest {
+  code: string;
+}
+
+/**
+ * Validate coupon response
+ */
+export interface ValidateCouponResponse {
+  success: boolean;
+  message: string;
+  coupon?: {
+    code: string;
+    discount: number;
+    description: string;
+  };
+  error?: {
+    code: string;
+    message: string;
+  };
 }
 
 /**
