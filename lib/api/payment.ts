@@ -41,6 +41,8 @@ export async function createCheckoutSession(
 
 /**
  * Validates a coupon code
+ * @param data - The coupon code validation request
+ * @returns Promise with validation result and discount information
  */
 export async function validateCoupon(
   data: ValidateCouponRequest
