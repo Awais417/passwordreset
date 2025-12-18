@@ -90,34 +90,6 @@ export async function getPaymentStatus(
 }
 
 /**
- * Validates a coupon code
- */
-export async function validateCoupon(
-  data: ValidateCouponRequest
-): Promise<ValidateCouponResponse> {
-  const response = await fetch(`${API_BASE_URL}/coupon/validate`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      code: data.code,
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    return {
-      success: false,
-      message: error.error?.message || error.message || "Invalid coupon code",
-      error: error.error || { code: "400", message: "Invalid coupon code" },
-    };
-  }
-
-  return response.json();
-}
-
-/**
  * Verifies a payment session after redirect from Stripe
  */
 export async function verifySession(
@@ -141,33 +113,4 @@ export async function verifySession(
 
   return response.json();
 }
-
-/**
- * Validates a coupon code
- */
-export async function validateCoupon(
-  data: ValidateCouponRequest
-): Promise<ValidateCouponResponse> {
-  const response = await fetch(`${API_BASE_URL}/coupon/validate`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      code: data.code,
-    }),
-  });
-
-  if (!response.ok) {
-    const error = await response.json().catch(() => ({}));
-    return {
-      success: false,
-      message: error.error?.message || error.message || "Invalid coupon code",
-      error: error.error || { code: "400", message: "Invalid coupon code" },
-    };
-  }
-
-  return response.json();
-}
-
 
