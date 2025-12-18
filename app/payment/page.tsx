@@ -8,8 +8,8 @@ import { getPaymentStatus } from "@/lib/api/payment";
 import type { User } from "@/types/user";
 
 // Default pricing - you can make this configurable
-const DEFAULT_AMOUNT = 29.99;
-const DEFAULT_CURRENCY = "usd";
+const DEFAULT_AMOUNT = 20;
+const DEFAULT_CURRENCY = "gbp";
 
 function PaymentPageContent() {
   const searchParams = useSearchParams();
@@ -86,7 +86,7 @@ function PaymentPageContent() {
                 Premium Plan
               </span>
               <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
-                ${DEFAULT_AMOUNT}
+                £{DEFAULT_AMOUNT}
               </span>
             </div>
 
