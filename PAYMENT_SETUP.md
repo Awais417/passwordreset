@@ -30,15 +30,22 @@ The payment flow integrates with your backend API to handle Stripe payments. Use
 Create a `.env.local` file in the root directory with:
 
 ```env
-# API Configuration
+# API Configuration (Backend URL)
 NEXT_PUBLIC_API_URL=https://serverapis.vercel.app
 
-# Frontend URL (for redirects)
+# Frontend URL (for redirects after payment)
+# Local development
 NEXT_PUBLIC_FRONTEND_URL=http://localhost:3000
+# Production (already set in Vercel, but you can override)
+# NEXT_PUBLIC_FRONTEND_URL=https://passwordreset-two.vercel.app
 
 # Optional: Stripe Publishable Key (if needed for frontend)
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
 ```
+
+**Production URLs:**
+- Frontend: `https://passwordreset-two.vercel.app`
+- Backend: `https://serverapis.vercel.app`
 
 **Note:** The secret keys (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`) should only be in your backend `.env` file, never in the frontend.
 
@@ -168,21 +175,42 @@ All components use Tailwind CSS with dark mode support. The styling matches your
 7. Verify redirect to success page
 8. Check that payment status updates
 
+## Deployment Configuration
+
+### Vercel Environment Variables
+
+When deploying to Vercel, make sure to set these environment variables in your Vercel project settings:
+
+1. Go to your Vercel project dashboard
+2. Navigate to Settings → Environment Variables
+3. Add the following:
+
+```
+NEXT_PUBLIC_API_URL=https://serverapis.vercel.app
+NEXT_PUBLIC_FRONTEND_URL=https://passwordreset-two.vercel.app
+```
+
+**Important:** Make sure your backend Stripe webhook is configured to use:
+- Webhook URL: `https://serverapis.vercel.app/payment/webhook`
+- Success redirect URL: `https://passwordreset-two.vercel.app/payment/success`
+
 ## Troubleshooting
 
 ### "Failed to create checkout session"
-- Check that `NEXT_PUBLIC_API_URL` is correct
+- Check that `NEXT_PUBLIC_API_URL` is set to `https://serverapis.vercel.app`
 - Verify backend is running and accessible
 - Check browser console for detailed error
+- Ensure CORS is properly configured on the backend
 
 ### "No session ID found"
 - Ensure Stripe redirect URL includes `?session_id=...`
 - Check your Stripe dashboard webhook configuration
+- Verify the success URL in your backend checkout session creation matches: `https://passwordreset-two.vercel.app/payment/success`
 
 ### Payment status not updating
-- Verify webhook is set up in Stripe dashboard
+- Verify webhook is set up in Stripe dashboard pointing to `https://serverapis.vercel.app/payment/webhook`
 - Check backend webhook handler logs
-- Manually call `/payment/status/:userId` to verify
+- Manually call `GET https://serverapis.vercel.app/payment/status/:userId` to verify
 
 ## Next Steps
 
