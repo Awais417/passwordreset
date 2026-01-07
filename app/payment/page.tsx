@@ -8,7 +8,7 @@ import { getPaymentStatus, validateCoupon } from "@/lib/api/payment";
 import type { User } from "@/types/user";
 
 // Default pricing - you can make this configurable
-const DEFAULT_AMOUNT = 20;
+const DEFAULT_AMOUNT = 19.99;
 const DEFAULT_CURRENCY = "gbp";
 
 function PaymentPageContent() {

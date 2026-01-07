@@ -9,7 +9,7 @@ import type {
 } from "@/types/user";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "https://serverapis.vercel.app";
+  process.env.NEXT_PUBLIC_API_URL || "https://nodeapislive.netlify.app";
 
 /**
  * Creates a Stripe checkout session
