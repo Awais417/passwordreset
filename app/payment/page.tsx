@@ -215,7 +215,7 @@ function PaymentPageContent() {
                       d="M5 13l4 4L19 7"
                     />
                   </svg>
-                  <span>One-time payment, lifetime access</span>
+                  <span>One-time payment, 1-year access</span>
                 </li>
               </ul>
             </div>
