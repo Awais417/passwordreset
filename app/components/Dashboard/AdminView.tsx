@@ -320,7 +320,7 @@ export default function AdminView() {
   return (
     <div className="space-y-6">
       {/* Welcome Section */}
-      <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
+      <div className="bg-linear-to-r from-blue-600 to-purple-600 rounded-lg p-6 text-white">
         <div className="flex justify-between items-start">
           <div>
             <h3 className="text-2xl font-bold mb-2">Welcome, {user?.username || 'Admin'}!</h3>
@@ -502,7 +502,7 @@ export default function AdminView() {
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold flex-shrink-0">
+                        <div className="h-10 w-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-semibold shrink-0">
                           {admin.username.charAt(0).toUpperCase()}
                         </div>
                         <div className="ml-4">
@@ -526,7 +526,7 @@ export default function AdminView() {
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-zinc-600 dark:text-zinc-400 hidden md:table-cell">
-                      {formatDate(admin.createdAt)}
+                      {formatDate(admin?.createdAt || '')}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       {admin.id !== user?.id && (
