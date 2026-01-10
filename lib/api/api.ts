@@ -163,10 +163,10 @@ export interface Admin {
   id: string;
   username: string;
   email: string;
+  userType: string;
+  createdAt: string;
   updatedAt: string;
 }
-
-export interface AdminsResponse {
   message: string;
   admins: Admin[];
   total: number;
