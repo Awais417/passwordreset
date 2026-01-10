@@ -36,7 +36,7 @@ export default function LoadingBar({ isLoading, progress }: LoadingBarProps) {
   return (
     <div className="fixed top-0 left-0 right-0 z-50">
       <div 
-        className="h-1 bg-gradient-to-r from-orange-500 to-orange-600 transition-all duration-300 ease-out"
+        className="h-1 bg-linear-to-r from-orange-500 to-orange-600 transition-all duration-300 ease-out"
         style={{ 
           width: `${progress !== undefined ? progress : displayProgress}%`,
           transform: isLoading ? 'scaleX(1)' : 'scaleX(0)',
