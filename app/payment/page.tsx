@@ -14,6 +14,7 @@ const DEFAULT_CURRENCY = "gbp";
 function PaymentPageContent() {
   const searchParams = useSearchParams();
   const [userId, setUserId] = useState<string>("");
+  const [returnUrl, setReturnUrl] = useState<string | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,13 +23,19 @@ function PaymentPageContent() {
   const [couponError, setCouponError] = useState<string | null>(null);
   const [validatingCoupon, setValidatingCoupon] = useState(false);
 
-  // Get userId from URL params
+  // Get userId and returnUrl from URL params
   useEffect(() => {
     const userIdParam = searchParams.get("userId") || searchParams.get("id");
+    const returnUrlParam = searchParams.get("returnUrl") || searchParams.get("callbackUrl");
+    
     if (userIdParam) {
       setUserId(userIdParam);
     } else {
       setError("User ID is required. Please provide userId in the URL parameters.");
+    }
+    
+    if (returnUrlParam) {
+      setReturnUrl(decodeURIComponent(returnUrlParam));
     }
   }, [searchParams]);
 
@@ -315,6 +322,7 @@ function PaymentPageContent() {
               amount={finalAmount}
               currency={DEFAULT_CURRENCY}
               couponCode={appliedCoupon?.code}
+              returnUrl={returnUrl || undefined}
               onSuccess={handleCheckoutSuccess}
               disabled={!userId}
             />

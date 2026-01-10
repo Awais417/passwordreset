@@ -15,6 +15,7 @@ function PaymentSuccessContent() {
 
   useEffect(() => {
     const sessionId = searchParams.get("session_id");
+    const returnUrl = searchParams.get("returnUrl");
 
     if (!sessionId) {
       setError("No session ID found in URL");
@@ -31,6 +32,21 @@ function PaymentSuccessContent() {
         if (response.success && response.user) {
           setUser(response.user);
           setVerified(true);
+          
+          // If returnUrl is provided, redirect to Unity app after a short delay
+          if (returnUrl) {
+            // Decode the returnUrl if it was encoded
+            const decodedReturnUrl = decodeURIComponent(returnUrl);
+            // Add user info to the return URL
+            const redirectUrl = decodedReturnUrl.includes('?')
+              ? `${decodedReturnUrl}&status=success&userId=${response.user.id}`
+              : `${decodedReturnUrl}?status=success&userId=${response.user.id}&session_id=${sessionId}`;
+            
+            // Wait 2 seconds to show success message, then redirect
+            setTimeout(() => {
+              window.location.href = redirectUrl;
+            }, 2000);
+          }
         } else {
           throw new Error(response.message || "Payment verification failed");
         }
@@ -153,12 +169,23 @@ function PaymentSuccessContent() {
               </div>
             )}
 
-            <button
-              onClick={() => router.push("/")}
-              className="w-full rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-black dark:hover:bg-zinc-200"
-            >
-              Continue to Dashboard
-            </button>
+            {searchParams.get("returnUrl") ? (
+              <div className="space-y-2">
+                <p className="text-center text-sm text-zinc-600 dark:text-zinc-400">
+                  Redirecting back to app...
+                </p>
+                <div className="h-2 w-full overflow-hidden rounded-full bg-zinc-200 dark:bg-zinc-800">
+                  <div className="h-full w-full animate-[loading_2s_ease-in-out] bg-emerald-600"></div>
+                </div>
+              </div>
+            ) : (
+              <button
+                onClick={() => router.push("/")}
+                className="w-full rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-black dark:hover:bg-zinc-200"
+              >
+                Continue to Dashboard
+              </button>
+            )}
           </div>
         </div>
       </div>

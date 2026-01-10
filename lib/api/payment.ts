@@ -27,6 +27,7 @@ export async function createCheckoutSession(
       amount: data.amount,
       currency: data.currency || "usd",
       couponCode: data.couponCode,
+      returnUrl: data.returnUrl,
     }),
   });
 

@@ -8,6 +8,7 @@ interface CheckoutButtonProps {
   amount: number;
   currency?: string;
   couponCode?: string;
+  returnUrl?: string;
   onSuccess?: () => void;
   className?: string;
   disabled?: boolean;
@@ -18,6 +19,7 @@ export function CheckoutButton({
   amount,
   currency = "usd",
   couponCode,
+  returnUrl,
   onSuccess,
   className = "",
   disabled = false,
@@ -37,6 +39,7 @@ export function CheckoutButton({
         amount,
         currency,
         couponCode,
+        returnUrl,
       });
 
       // Redirect to Stripe checkout

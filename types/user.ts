@@ -28,6 +28,7 @@ export interface CreateCheckoutSessionRequest {
   amount: number;
   currency?: string;
   couponCode?: string;
+  returnUrl?: string;
 }
 
 /**
