@@ -99,7 +99,7 @@ export default function Dashboard() {
                   : 'text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800'
               }`}
             >
-              <span className="text-xl flex-shrink-0">{tab.icon}</span>
+              <span className="text-xl shrink-0">{tab.icon}</span>
               {sidebarOpen && (
                 <span className="font-medium text-sm">{tab.name}</span>
               )}
@@ -114,7 +114,7 @@ export default function Dashboard() {
             className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
           >
             <svg
-              className="w-5 h-5 flex-shrink-0"
+              className="w-5 h-5 shrink-0"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"

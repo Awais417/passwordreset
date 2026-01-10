@@ -26,7 +26,7 @@ export default function HeroSection({ show, email, onEmailChange, onSubmit }: He
         }}
       >
         {/* Gaming-style Animated Background Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/60 to-black/80"></div>
+        <div className="absolute inset-0 bg-linear-to-t from-black/95 via-black/60 to-black/80"></div>
         
         {/* Animated Gaming Particles */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
@@ -40,7 +40,7 @@ export default function HeroSection({ show, email, onEmailChange, onSubmit }: He
         </div>
         
         {/* Gaming-style Glow Effects */}
-        <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-orange-500/10 animate-pulse"></div>
+        <div className="absolute inset-0 bg-linear-to-r from-orange-500/10 via-transparent to-orange-500/10 animate-pulse"></div>
         
         {/* Header */}
         <header className="relative z-10 px-4 sm:px-6 lg:px-8 py-4 sm:py-5 md:py-6">
@@ -77,10 +77,10 @@ export default function HeroSection({ show, email, onEmailChange, onSubmit }: He
               </button>
               <a
                 href="/signin"
-                className="relative bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 rounded-lg font-quartzo-bold text-sm sm:text-base transition-all duration-300 transform hover:scale-105 hover:shadow-[0_0_20px_rgba(249,115,22,0.6)] gaming-button"
+                className="relative bg-linear-to-r from-orange-500 to-orange-600 hover:from-orange-400 hover:to-orange-500 text-white px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 rounded-lg font-quartzo-bold text-sm sm:text-base transition-all duration-300 transform hover:scale-105 hover:shadow-[0_0_20px_rgba(249,115,22,0.6)] gaming-button"
               >
                 <span className="relative z-10">Sign In</span>
-                <div className="absolute inset-0 bg-gradient-to-r from-orange-400 to-orange-500 rounded-lg opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="absolute inset-0 bg-linear-to-r from-orange-400 to-orange-500 rounded-lg opacity-0 hover:opacity-100 transition-opacity duration-300"></div>
               </a>
             </div>
           </div>
@@ -124,7 +124,7 @@ export default function HeroSection({ show, email, onEmailChange, onSubmit }: He
           onClick={() => setShowDownloadModal(false)}
         >
           <div 
-            className="bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-lg p-6 sm:p-8 max-w-sm sm:max-w-md w-full mx-auto relative animate-slide-up border-2 border-orange-500 shadow-[0_0_30px_rgba(249,115,22,0.6)] hover:shadow-[0_0_50px_rgba(249,115,22,0.8)] transition-shadow duration-300"
+            className="bg-linear-to-br from-gray-900 via-gray-800 to-black rounded-lg p-6 sm:p-8 max-w-sm sm:max-w-md w-full mx-auto relative animate-slide-up border-2 border-orange-500 shadow-[0_0_30px_rgba(249,115,22,0.6)] hover:shadow-[0_0_50px_rgba(249,115,22,0.8)] transition-shadow duration-300"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Close Button */}

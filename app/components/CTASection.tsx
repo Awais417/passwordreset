@@ -21,8 +21,8 @@ export default function CTASection({
   return (
     <div className="py-12 sm:py-16 md:py-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
       {/* Gaming-style Background Effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-orange-600/5"></div>
-      <div className="absolute inset-0 bg-gradient-to-r from-orange-500/10 via-transparent to-orange-500/10 animate-pulse"></div>
+      <div className="absolute inset-0 bg-linear-to-br from-orange-500/5 via-transparent to-orange-600/5"></div>
+      <div className="absolute inset-0 bg-linear-to-r from-orange-500/10 via-transparent to-orange-500/10 animate-pulse"></div>
       
       <div className="max-w-4xl mx-auto text-center relative z-10">
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-quartzo-bold text-white mb-4 sm:mb-6 relative">
