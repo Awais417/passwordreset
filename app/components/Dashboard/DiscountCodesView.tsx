@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { fetchCodes, deleteCode, addCode, DiscountCode } from '../../../lib/api/api';
+import { fetchCodes, deleteCode, addCode, DiscountCode, fetchWalletUsers, WalletUser } from '../../../lib/api/api';
 import Swal from 'sweetalert2';
 
 export default function DiscountCodesView() {
@@ -9,9 +9,11 @@ export default function DiscountCodesView() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [walletUsers, setWalletUsers] = useState<WalletUser[]>([]);
 
   useEffect(() => {
     loadCodes();
+    loadWalletUsers();
   }, []);
 
   const loadCodes = async () => {
@@ -27,7 +29,33 @@ export default function DiscountCodesView() {
     }
   };
 
-  const showAddCodeModal = async (initialCode = '', initialDiscount = '', errorMessage = '') => {
+  const loadWalletUsers = async () => {
+    try {
+      const res = await fetchWalletUsers();
+      setWalletUsers(res.users || []);
+    } catch (err) {
+      // Not fatal for codes page; dropdown will just be empty
+      console.error('Failed to load wallet users:', err);
+    }
+  };
+
+  const showAddCodeModal = async (
+    initialCode = '',
+    initialDiscount = '',
+    initialWalletUserId = '',
+    initialWalletAmount = '',
+    errorMessage = ''
+  ) => {
+    const optionsHtml =
+      walletUsers.length > 0
+        ? walletUsers
+            .map((u) => {
+              const selected = initialWalletUserId && initialWalletUserId === u.id ? 'selected' : '';
+              return `<option value="${u.id}" ${selected}>${u.username} (${u.email})</option>`;
+            })
+            .join('')
+        : '';
+
     const { value: formValues } = await Swal.fire({
       title: 'Add New Code',
       html: `
@@ -36,6 +64,15 @@ export default function DiscountCodesView() {
           <input id="swal-code" class="swal2-input" placeholder="Enter code name" value="${initialCode}" style="margin-top: 0.5rem;">
           <label style="display: block; margin-top: 1rem; margin-bottom: 0.5rem; font-weight: 500; color: #374151;">Discount (%)</label>
           <input id="swal-discount" type="number" class="swal2-input" placeholder="Enter discount percentage" value="${initialDiscount}" min="0" max="100" style="margin-top: 0.5rem;">
+          <label style="display: block; margin-top: 1rem; margin-bottom: 0.5rem; font-weight: 600; color: #111827;">Total Amount</label>
+          <div style="padding: 10px 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 8px; font-weight: 700;">£19.99</div>
+          <label style="display: block; margin-top: 1rem; margin-bottom: 0.5rem; font-weight: 600; color: #111827;">Wallet Amount (commission to wallet user)</label>
+          <input id="swal-wallet-amount" type="number" class="swal2-input" placeholder="Enter wallet payout amount (max 18)" value="${initialWalletAmount}" min="0" max="18" step="0.01" style="margin-top: 0.5rem;">
+          <label style="display: block; margin-top: 1rem; margin-bottom: 0.5rem; font-weight: 500; color: #374151;">Assign to Wallet User (optional)</label>
+          <select id="swal-wallet-user" class="swal2-input" style="margin-top: 0.5rem;">
+            <option value="">-- Not assigned --</option>
+            ${optionsHtml}
+          </select>
           <div id="swal-error" style="color: #dc2626; margin-top: 0.5rem; font-size: 0.875rem; display: ${errorMessage ? 'block' : 'none'};">${errorMessage}</div>
         </div>
       `,
@@ -49,6 +86,8 @@ export default function DiscountCodesView() {
       preConfirm: () => {
         const code = (document.getElementById('swal-code') as HTMLInputElement)?.value;
         const discount = (document.getElementById('swal-discount') as HTMLInputElement)?.value;
+        const walletUserId = (document.getElementById('swal-wallet-user') as HTMLSelectElement)?.value;
+        const walletAmount = (document.getElementById('swal-wallet-amount') as HTMLInputElement)?.value;
         const errorDiv = document.getElementById('swal-error') as HTMLDivElement;
 
         if (errorDiv) {
@@ -72,13 +111,90 @@ export default function DiscountCodesView() {
           return false;
         }
 
+        if (walletAmount && (isNaN(Number(walletAmount)) || Number(walletAmount) < 0 || Number(walletAmount) > 18)) {
+          if (errorDiv) {
+            errorDiv.textContent = 'Please enter a valid wallet amount (0 - 18)';
+            errorDiv.style.display = 'block';
+          }
+          return false;
+        }
+
         return {
           code: code.trim(),
           discount: Number(discount),
+          walletUserId: walletUserId && walletUserId.trim() !== '' ? walletUserId : undefined,
+          walletAmount: walletAmount && walletAmount.trim() !== '' ? Number(walletAmount) : undefined,
         };
       },
       didOpen: () => {
         const codeInput = document.getElementById('swal-code') as HTMLInputElement;
+        const discountInput = document.getElementById('swal-discount') as HTMLInputElement;
+        const walletAmountInput = document.getElementById('swal-wallet-amount') as HTMLInputElement;
+
+        const clamp = (val: number, min: number, max: number) => Math.max(min, Math.min(max, val));
+
+        const preventInvalidNumberKeys = (e: KeyboardEvent) => {
+          // Block scientific notation and signs in number inputs
+          if (e.key === 'e' || e.key === 'E' || e.key === '+' || e.key === '-') {
+            e.preventDefault();
+          }
+        };
+
+        const clampOnInput = (inputEl: HTMLInputElement | null, min: number, max: number, decimals?: number) => {
+          if (!inputEl) return;
+          const raw = inputEl.value;
+          if (raw === '') return;
+
+          // Remove any non-numeric characters except dot
+          const cleaned = raw.replace(/[^0-9.]/g, '');
+          if (cleaned !== raw) inputEl.value = cleaned;
+
+          const num = Number(inputEl.value);
+          if (Number.isNaN(num)) {
+            inputEl.value = String(min);
+            return;
+          }
+
+          const clamped = clamp(num, min, max);
+          if (decimals !== undefined) {
+            inputEl.value = clamped.toFixed(decimals);
+          } else {
+            inputEl.value = String(clamped);
+          }
+        };
+
+        const clampDiscount = () => {
+          const n = Number(discountInput?.value);
+          if (!discountInput) return;
+          if (discountInput.value === '') return;
+          if (isNaN(n)) {
+            discountInput.value = '0';
+            return;
+          }
+          discountInput.value = String(clamp(n, 0, 100));
+        };
+
+        const clampWalletAmount = () => {
+          const n = Number(walletAmountInput?.value);
+          if (!walletAmountInput) return;
+          if (walletAmountInput.value === '') return;
+          if (isNaN(n)) {
+            walletAmountInput.value = '0';
+            return;
+          }
+          walletAmountInput.value = String(clamp(n, 0, 18));
+        };
+
+        // Enforce limits while typing (not just on blur)
+        discountInput?.addEventListener('keydown', preventInvalidNumberKeys);
+        walletAmountInput?.addEventListener('keydown', preventInvalidNumberKeys);
+
+        discountInput?.addEventListener('input', () => clampOnInput(discountInput, 0, 100));
+        walletAmountInput?.addEventListener('input', () => clampOnInput(walletAmountInput, 0, 18));
+
+        discountInput?.addEventListener('blur', clampDiscount);
+        walletAmountInput?.addEventListener('blur', clampWalletAmount);
+
         if (codeInput) {
           codeInput.focus();
         }
@@ -97,7 +213,7 @@ export default function DiscountCodesView() {
 
     while (formValues) {
       try {
-        await addCode(formValues.code, formValues.discount);
+        await addCode(formValues.code, formValues.discount, formValues.walletUserId, formValues.walletAmount);
         Swal.close();
         await Swal.fire({
           title: 'Success!',
@@ -111,7 +227,13 @@ export default function DiscountCodesView() {
         break;
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to add code';
-        formValues = await showAddCodeModal(formValues.code, formValues.discount.toString(), errorMessage);
+        formValues = await showAddCodeModal(
+          formValues.code,
+          formValues.discount.toString(),
+          formValues.walletUserId || '',
+          formValues.walletAmount !== undefined ? String(formValues.walletAmount) : '',
+          errorMessage
+        );
         if (!formValues) {
           break;
         }
@@ -282,7 +404,13 @@ export default function DiscountCodesView() {
                     Code
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+                    Wallet User
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
                     Discount
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
+                    Wallet Amount
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-700 dark:text-zinc-300 uppercase tracking-wider">
                     Status
@@ -312,8 +440,25 @@ export default function DiscountCodesView() {
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
+                      {code.assignedTo ? (
+                        <div className="text-sm text-zinc-700 dark:text-zinc-300">
+                          <div className="font-medium">{code.assignedTo.username || 'Wallet user'}</div>
+                          <div className="text-xs text-zinc-500 dark:text-zinc-400 truncate max-w-[220px]">
+                            {code.assignedTo._id}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-zinc-400">—</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
                       <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400">
                         {code.discount}%
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+                        £{(code.walletAmount ?? 0).toFixed(2)}
                       </span>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">

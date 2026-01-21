@@ -6,10 +6,11 @@ import { useRouter } from 'next/navigation';
 import DiscountCodesView from './Dashboard/DiscountCodesView';
 import AdminView from './Dashboard/AdminView';
 import UsersView from './Dashboard/UsersView';
+import WalletView from './Dashboard/WalletView';
 import SettingsView from './Dashboard/SettingsView';
 import LeadsView from './Dashboard/LeadsView';
 
-type TabType = 'discount-codes' | 'admin' | 'users' | 'leads' | 'settings';
+type TabType = 'discount-codes' | 'admin' | 'users' | 'wallet' | 'leads' | 'settings';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<TabType>('discount-codes');
@@ -27,9 +28,21 @@ export default function Dashboard() {
     { id: 'discount-codes' as TabType, name: 'Discount Codes', icon: '🎟️' },
     { id: 'admin' as TabType, name: 'Admin', icon: '👤' },
     { id: 'users' as TabType, name: 'Users', icon: '👥' },
+    { id: 'wallet' as TabType, name: 'Wallet', icon: '👛' },
     { id: 'leads' as TabType, name: 'Leads', icon: '📧' },
     { id: 'settings' as TabType, name: 'Settings', icon: '⚙️' },
   ];
+
+  const isWalletUser = (user?.userType || '').toLowerCase() === 'wallet';
+  const visibleTabs = isWalletUser ? tabs.filter((t) => t.id === 'wallet') : tabs;
+
+  // If wallet user logs in, force them into Wallet tab only
+  useEffect(() => {
+    if (isWalletUser && activeTab !== 'wallet') {
+      setActiveTab('wallet');
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isWalletUser]);
 
   const renderContent = () => {
     switch (activeTab) {
@@ -39,12 +52,14 @@ export default function Dashboard() {
         return <AdminView />;
       case 'users':
         return <UsersView />;
+      case 'wallet':
+        return <WalletView />;
       case 'leads':
         return <LeadsView />;
       case 'settings':
         return <SettingsView />;
       default:
-        return <DiscountCodesView />;
+        return isWalletUser ? <WalletView /> : <DiscountCodesView />;
     }
   };
 
@@ -89,7 +104,7 @@ export default function Dashboard() {
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
-          {tabs.map((tab) => (
+          {visibleTabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
@@ -139,7 +154,7 @@ export default function Dashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <h2 className="text-2xl font-bold text-zinc-900 dark:text-white">
-                  {tabs.find((t) => t.id === activeTab)?.name || 'Dashboard'}
+                  {visibleTabs.find((t) => t.id === activeTab)?.name || (isWalletUser ? 'Wallet' : 'Dashboard')}
                 </h2>
                 {user && (
                   <p className="text-sm text-zinc-600 dark:text-zinc-400 mt-1">

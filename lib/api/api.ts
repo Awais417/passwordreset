@@ -8,9 +8,12 @@ export interface DiscountCode {
   code: string;
   description: string;
   discount: number;
+  totalAmount?: number;
+  walletAmount?: number;
   isActive: boolean;
-  usedBy: string | null;
+  usedBy: { _id: string; username?: string; email?: string; userType?: string } | null;
   usedAt: string | null;
+  assignedTo?: { _id: string; username?: string; email?: string; userType?: string } | null;
   createdAt: string;
   updatedAt: string;
   __v: number;
@@ -67,7 +70,7 @@ export async function fetchCodes(): Promise<CodesResponse> {
   return await response.json();
 }
 
-export async function addCode(code: string, discount: number): Promise<DiscountCode> {
+export async function addCode(code: string, discount: number, walletUserId?: string, walletAmount?: number): Promise<DiscountCode> {
   const token = getToken();
   if (!token) {
     throw new Error('Not authenticated');
@@ -81,6 +84,8 @@ export async function addCode(code: string, discount: number): Promise<DiscountC
     body: JSON.stringify({
       code,
       discount,
+      walletUserId,
+      walletAmount,
     }),
   });
 
@@ -202,6 +207,141 @@ export async function deleteAdmin(adminId: string): Promise<void> {
     const error = await response.json().catch(() => ({ message: 'Failed to delete admin' }));
     throw new Error(error.message || error.error?.message || 'Failed to delete admin');
   }
+}
+
+export interface WalletUser {
+  id: string;
+  username: string;
+  email: string;
+  userType: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WalletUsersResponse {
+  message: string;
+  users: WalletUser[];
+  total: number;
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+export async function fetchWalletUsers(search?: string): Promise<WalletUsersResponse> {
+  const params = new URLSearchParams();
+  if (search) params.append('search', search);
+
+  const response = await fetch(`${API_BASE}/auth/wallet-users?${params.toString()}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to fetch wallet users' }));
+    throw new Error(error.message || error.error?.message || 'Failed to fetch wallet users');
+  }
+
+  return await response.json();
+}
+
+export interface CreateWalletUserResponse {
+  message: string;
+  user: WalletUser;
+}
+
+export async function createWalletUser(username: string, email: string, password: string): Promise<CreateWalletUserResponse> {
+  const response = await fetch(`${API_BASE}/auth/wallet-users`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, email, password }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to create wallet user' }));
+    throw new Error(error.message || error.error?.message || 'Failed to create wallet user');
+  }
+
+  return await response.json();
+}
+
+export async function deleteWalletUser(userId: string): Promise<void> {
+  const response = await fetch(`${API_BASE}/auth/wallet-users/${userId}`, {
+    method: 'DELETE',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to delete wallet user' }));
+    throw new Error(error.message || error.error?.message || 'Failed to delete wallet user');
+  }
+}
+
+export interface WalletSummary {
+  userId: string;
+  username: string;
+  email: string;
+  currency: string;
+  balance: number;
+  totalSales: number;
+  totalEarned: number;
+  totalWithdrawn: number;
+}
+
+export interface WalletTxn {
+  id: string;
+  type: 'credit' | 'debit';
+  status: 'completed' | 'pending' | 'failed';
+  amount: number;
+  currency: string;
+  paidAmount: number | null;
+  code: { id: string | null; code: string; discount: number; walletAmount: number } | null;
+  sourceUser: { id: string; username: string; email: string } | null;
+  createdAt: string;
+}
+
+export interface GetMyWalletResponse {
+  message: string;
+  wallet: WalletSummary;
+  transactions: WalletTxn[];
+}
+
+export async function fetchMyWallet(userId: string): Promise<GetMyWalletResponse> {
+  const params = new URLSearchParams({ userId });
+  const response = await fetch(`${API_BASE}/wallet/me?${params.toString()}`, {
+    method: 'GET',
+    headers: { 'Content-Type': 'application/json' },
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to fetch wallet' }));
+    throw new Error(error.message || error.error?.message || 'Failed to fetch wallet');
+  }
+
+  return await response.json();
+}
+
+export interface RequestWithdrawResponse {
+  message: string;
+  withdrawal: { id: string; amount: number; status: string };
+  balance: number;
+}
+
+export async function requestWithdraw(userId: string, amount: number): Promise<RequestWithdrawResponse> {
+  const response = await fetch(`${API_BASE}/wallet/withdraw`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ userId, amount }),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({ message: 'Failed to request withdrawal' }));
+    throw new Error(error.message || error.error?.message || 'Failed to request withdrawal');
+  }
+
+  return await response.json();
 }
 
 export interface AdminStats {

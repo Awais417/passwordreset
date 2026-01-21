@@ -19,12 +19,13 @@ export default function LoginForm() {
     try {
       const response = await login(email, password);
       
-      // Check if user is an admin
-      if (response.user.userType !== 'admin') {
+      // Allow only admin + wallet users
+      const userType = (response.user.userType || '').toLowerCase();
+      if (userType !== 'admin' && userType !== 'wallet') {
         // Clear the auth data since login succeeded but user is not admin
         const { clearAuth } = await import('../../lib/api/auth');
         clearAuth();
-        setError('Access denied. Only administrators can access this admin panel.');
+        setError('Access denied. Only admin or wallet users can access this panel.');
         setLoading(false);
         return;
       }
