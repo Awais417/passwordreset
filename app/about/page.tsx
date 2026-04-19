@@ -33,7 +33,7 @@ export default function AboutPage() {
 
   const handleSubmit = (source: 'hero' | 'cta') => {
     return async (e: React.FormEvent) => {
-      e.preventDefault();
+    e.preventDefault();
       if (!email || !email.includes('@')) {
         Swal.fire({
           title: 'Invalid Email',

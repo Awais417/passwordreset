@@ -179,12 +179,12 @@ function PaymentSuccessContent() {
                 </div>
               </div>
             ) : (
-              <button
-                onClick={() => router.push("/")}
-                className="w-full rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-black dark:hover:bg-zinc-200"
-              >
-                Continue to Dashboard
-              </button>
+            <button
+              onClick={() => router.push("/")}
+              className="w-full rounded-md bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 dark:bg-zinc-100 dark:text-black dark:hover:bg-zinc-200"
+            >
+              Continue to Dashboard
+            </button>
             )}
           </div>
         </div>

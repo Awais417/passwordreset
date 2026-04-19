@@ -142,10 +142,10 @@ function PaymentPageContent() {
           <div className="mb-6 space-y-4">
             <div className="space-y-2 border-b border-zinc-200 pb-4 dark:border-zinc-800">
               <div className="flex items-center justify-between">
-                <span className="text-zinc-600 dark:text-zinc-400">
-                  Premium Plan
-                </span>
-                <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
+              <span className="text-zinc-600 dark:text-zinc-400">
+                Premium Plan
+              </span>
+              <span className="text-2xl font-bold text-zinc-900 dark:text-zinc-50">
                   £{DEFAULT_AMOUNT}
                 </span>
               </div>
@@ -165,7 +165,7 @@ function PaymentPageContent() {
                     </span>
                     <span className="text-xl font-bold text-zinc-900 dark:text-zinc-50">
                       £{finalAmount.toFixed(2)}
-                    </span>
+              </span>
                   </div>
                 </>
               )}
